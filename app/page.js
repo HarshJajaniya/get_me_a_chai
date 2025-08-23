@@ -2,102 +2,94 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <>
+      <div className="flex justify-center flex-col gap-4 items-center text-white p-4 h-[44vh] ">
+        <div className="font-bold text-3xl ">Buy me a chai</div>
+        <p>Crowd Funding start now. Start funding your favourite crator</p>
+        <div>
+          <button
+            type="button"
+            className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+          >
+            Start Now
+          </button>
+          <button
+            type="button"
+            className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+          >
+            Read more
+          </button>
+        </div>
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+      <div className="bg-white h-1 opacity-10"></div>
+
+      {/* buying section */}
+      <div className="container justify-around mx-auto flex py-20">
+        <div className="flex flex-col justify-center items-center gap-1">
+          <div className="rounded-lg overflow-hidden w-[100px] h-[100px] mx-4">
+            <img
+              src="/man.gif"
+              alt="Animated man"
+              className="w-full h-full object-cover"
             />
-            Deploy now
-          </a>
+          </div>
+          <h1 className="text-white pb-1 p-5 font-bold text-lg">
+            Your fans can buy
+          </h1>
+          <p className="text-lg font-bold text-white pt-2">
+            Your fans want to fund
+          </p>
+        </div>
+        <div className="flex flex-col justify-center items-center gap-1">
+          <div className="rounded-lg overflow-hidden w-[100px] h-[100px] mx-4">
+            <img
+              src="/fans.gif"
+              alt="Animated man"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <h1 className="text-white pb-1 p-5 font-bold text-lg">
+            Your fans want to fund
+          </h1>
+          <p className=" text-white pt-2">
+            Your fans are available for you to help
+          </p>
+        </div>
+        <div className="flex flex-col justify-center items-center gap-1">
+          <div className="rounded-lg overflow-hidden w-[100px] h-[100px] mx-4">
+            <img
+              src="/man.gif"
+              alt="Animated man"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <h1 className="text-white pb-1 p-5 font-bold text-lg">
+            Your fans can buy
+          </h1>
+          <p className="text-lg font-bold text-white pt-2">Fund Yourself</p>
+        </div>
+      </div>
+
+      <div className="bg-white h-1 opacity-10"></div>
+      {/* learn more section */}
+      <div className="container justify-around mx-auto flex py-20">
+        <div className="flex flex-col justify-center items-center gap-1">
+          <img
+            src="/thm.png"
+            alt="Notion Portfolio"
+            className="w-full h-[200px] object-cover rounded-[8px] shadow-gradient"
+          />
           <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            href="https://harshjajaniya.notion.site/ebd/10b7404d2bdc8065af9dfa0f61535f50"
             target="_blank"
             rel="noopener noreferrer"
+            className="inline-block font-semibold mt-4 px-4 py-2 bg-white text-blue-950 rounded hover:bg-purple-400 hover:text-white"
           >
-            Read our docs
+            View Portfolio
           </a>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </div>
+    </>
   );
 }
