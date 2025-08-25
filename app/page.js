@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <>
       <div className="flex justify-center flex-col gap-4 items-center text-white p-4 h-[44vh] ">
-        <div className="font-bold text-3xl ">Buy me a chai</div>
+        <div className="font-bold text-3xl ">Buy me a chai!</div>
         <p>Crowd Funding start now. Start funding your favourite crator</p>
         <div>
           <button
@@ -78,13 +78,13 @@ export default function Home() {
           <img
             src="/thm.png"
             alt="Notion Portfolio"
-            className="w-full h-[200px] object-cover rounded-[8px] shadow-gradient"
+            className="w-full h-[400px] object-cover rounded-[8px] shadow-gradient"
           />
           <a
             href="https://harshjajaniya.notion.site/ebd/10b7404d2bdc8065af9dfa0f61535f50"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block font-semibold mt-4 px-4 py-2 bg-white text-blue-950 rounded hover:bg-purple-400 hover:text-white"
+            className=" w-full text-center inline-block font-semibold mt-8 px-4 py-2 bg-white text-blue-950 rounded hover:bg-purple-400 hover:text-white"
           >
             View Portfolio
           </a>

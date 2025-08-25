@@ -1,7 +1,17 @@
 "use client";
 import React from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 const Login = () => {
+  const { data: session } = useSession();
+  const router = useRouter();
+  useEffect(() => {
+    if (session) {
+      router.push("/profile");
+    }
+  }, [session, router]);
+
   return (
     <div className="text-white container mx-auto py-14">
       <h1 className="font-bold text-center text-3xl">Login to support me</h1>
