@@ -1,5 +1,6 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { fetchuser, updateprofile } from "@/actions/useraction";
 
 const Dashboard = () => {
   const [form, setForm] = useState({
@@ -12,13 +13,49 @@ const Dashboard = () => {
     razorpaysecret: "",
   });
 
+  // Handle input changes
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form submitted:", form);
+  // Fetch user data when component mounts
+  useEffect(() => {
+    const getdata = async () => {
+      try {
+        const storedUser = sessionStorage.getItem("user");
+        if (!storedUser) return;
+
+        const parsedUser = JSON.parse(storedUser); // Convert string to object
+
+        // ⚡ choose correct property (username or name)
+        const u = await fetchuser(parsedUser.username || parsedUser.name);
+
+        if (u) {
+          setForm(u);
+        }
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+      }
+    };
+
+    getdata();
+  }, []);
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    try {
+      console.log("Form data before update:", form);
+      const storedUser = sessionStorage.getItem("user");
+      if (!storedUser) return;
+
+      const parsedUser = JSON.parse(storedUser);
+      await updateprofile(form, parsedUser.username || parsedUser.name);
+
+      alert("Profile updated ✅");
+      console.log("Form submitted:", form);
+    } catch (err) {
+      console.error("Error updating profile:", err);
+    }
   };
 
   return (
@@ -27,9 +64,9 @@ const Dashboard = () => {
         Welcome to your Dashboard
       </h1>
 
-      <form className="max-w-2xl mx-auto" onSubmit={handleSubmit}>
+      <form className="max-w-2xl mx-auto " onSubmit={handleSubmit}>
         {/* Name */}
-        <div className="my-2">
+        <div className="my-2 ">
           <label htmlFor="name" className="block mb-1 font-medium">
             Name
           </label>
@@ -40,7 +77,7 @@ const Dashboard = () => {
             name="name"
             id="name"
             autoComplete="name"
-            className="block w-full p-2 border rounded-lg bg-slate-100"
+            className="block w-full p-2 border rounded-lg bg-slate-100 text-black"
           />
         </div>
 
@@ -56,7 +93,7 @@ const Dashboard = () => {
             name="email"
             id="email"
             autoComplete="email"
-            className="block w-full p-2 border rounded-lg bg-slate-100"
+            className="block w-full p-2 border rounded-lg bg-slate-100 text-black"
           />
         </div>
 
@@ -72,14 +109,14 @@ const Dashboard = () => {
             name="username"
             id="username"
             autoComplete="username"
-            className="block w-full p-2 border rounded-lg bg-slate-100"
+            className="block w-full p-2 border rounded-lg bg-slate-100 text-black"
           />
         </div>
 
         {/* Profile Picture */}
         <div className="my-2">
           <label htmlFor="profilepic" className="block mb-1 font-medium">
-            Profile Picture (NEXT_PUBLIC_URL)
+            Profile Picture
           </label>
           <input
             value={form.profilepic}
@@ -87,15 +124,14 @@ const Dashboard = () => {
             type="text"
             name="profilepic"
             id="profilepic"
-            autoComplete="photo"
-            className="block w-full p-2 border rounded-lg bg-slate-100"
+            className="block w-full p-2 border rounded-lg bg-slate-100 text-black"
           />
         </div>
 
         {/* Cover Picture */}
         <div className="my-2">
           <label htmlFor="coverpic" className="block mb-1 font-medium">
-            Cover Picture (NEXT_PUBLIC_URL)
+            Cover Picture
           </label>
           <input
             value={form.coverpic}
@@ -103,8 +139,7 @@ const Dashboard = () => {
             type="text"
             name="coverpic"
             id="coverpic"
-            autoComplete="off"
-            className="block w-full p-2 border rounded-lg bg-slate-100"
+            className="block w-full p-2 border rounded-lg bg-slate-100 text-black"
           />
         </div>
 
@@ -120,7 +155,7 @@ const Dashboard = () => {
             name="razorpayid"
             id="razorpayid"
             autoComplete="new-password"
-            className="block w-full p-2 border rounded-lg bg-slate-100"
+            className="block w-full p-2 border rounded-lg bg-slate-100 text-black"
           />
         </div>
 
@@ -135,7 +170,7 @@ const Dashboard = () => {
             type="text"
             name="razorpaysecret"
             id="razorpaysecret"
-            className="block w-full p-2 border rounded-lg bg-slate-100"
+            className="block w-full p-2 border rounded-lg bg-slate-100 text-black"
           />
         </div>
 

@@ -50,9 +50,11 @@ export const authoptions = NextAuth({
       }
     },
 
-    async session({ session, user, token }) {
+    async session({ session }) {
       const dbUser = await User.findOne({ email: session.user.email });
-      session.user.name = dbUser.username;
+      if (dbUser) {
+        session.user.username = dbUser.username; // ✅ add username separately
+      }
       return session;
     },
   },

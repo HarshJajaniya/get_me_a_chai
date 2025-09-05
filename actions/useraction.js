@@ -4,6 +4,7 @@ import Razorpay from "razorpay";
 import payment from "@/models/payment";
 import connectDb from "@/db/connectDb";
 import User from "@/models/User";
+import Email from "next-auth/providers/email";
 export const initiate = async (amount, to_username, paymentform) => {
   await connectDb();
   var instance = new Razorpay({
@@ -42,4 +43,28 @@ export const fetchpayments = async (username) => {
     .lean(); // ✅ plain objects already
 
   return JSON.parse(JSON.stringify(p)); // ✅ safe for Client Components
+};
+
+export const updateprofile = async (data, oldusername) => {
+  await connectDb();
+
+  // Clone the form data
+  let ndata = { ...data };
+
+  // If username is changing, check for conflicts
+  if (oldusername !== ndata.username) {
+    const exists = await User.findOne({ username: ndata.username });
+    if (exists) {
+      return { error: "Username already exists" };
+    }
+  }
+
+  // Update the user by old username
+  const updatedUser = await User.findOneAndUpdate(
+    { username: oldusername },
+    { $set: ndata },
+    { new: true }
+  ).lean();
+
+  return JSON.parse(JSON.stringify(updatedUser));
 };
