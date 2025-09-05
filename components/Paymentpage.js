@@ -1,13 +1,19 @@
 "use client";
 import Script from "next/script";
-import React from "react";
-import { initiate } from "@/actions/useraction";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { fetchuser, fetchpayments, initiate } from "@/actions/useraction";
 
 const PaymentPage = ({ username }) => {
   const [paymentform, setpaymentform] = useState({});
+  const [currentUser, setcurrentUser] = useState({});
+  const [payments, setpayments] = useState([]);
   const { data: session } = useSession();
+
+  useEffect(() => {
+    getdata();
+  }, []);
 
   const Handlechange = (e) => {
     setpaymentform({ ...paymentform, [e.target.name]: e.target.value });
@@ -15,11 +21,13 @@ const PaymentPage = ({ username }) => {
 
   //the supporter section: whichever payments are marked as done are to be shown;
 
-  const getdata=(params)=>{
-
-    let u=
-  }
-
+  const getdata = async () => {
+    let u = await fetchuser(username);
+    let dbpayments = await fetchpayments(username);
+    setcurrentUser(u);
+    setpayments(dbpayments);
+    console.log(u, dbpayments);
+  };
 
   const pay = async (amount) => {
     const finalAmount = amount * 100; // convert to paise
@@ -85,30 +93,20 @@ const PaymentPage = ({ username }) => {
           <div className="supports w-1/2 bg-slate-900 rounded-2xl text-white my-5 p-5">
             <h1 className="font-bold text-2xl my-5">Supports</h1>
             <ul className="mx-5">
-              <li className="my-4 flex gap-2 items-center">
-                <img width={40} src="avatar.gif" alt="avatar" />
-                <span>
-                  Mohit Donated{" "}
-                  <span className="text-green-300 font-bold">$300</span> with
-                  msg "Full Power🔥"
-                </span>
-              </li>
-              <li className="my-4 flex gap-2 items-center">
-                <img width={40} src="avatar.gif" alt="avatar" />
-                <span>
-                  Mohit Donated{" "}
-                  <span className="text-green-300 font-bold">$300</span> with
-                  msg "Full Power🔥"
-                </span>
-              </li>
-              <li className="my-4 flex gap-2 items-center">
-                <img width={40} src="avatar.gif" alt="avatar" />
-                <span>
-                  Mohit Donated{" "}
-                  <span className="text-green-300 font-bold">$300</span> with
-                  msg "Full Power🔥"
-                </span>
-              </li>
+              <ul>
+                {payments.map((pay, i) => (
+                  <li key={i} className="my-4 flex gap-2 items-center">
+                    <img width={40} src="avatar.gif" alt="avatar" />
+                    <span>
+                      {pay.name} donated{" "}
+                      <span className="text-green-300 font-bold">
+                        ₹{pay.amount}
+                      </span>{" "}
+                      with msg "{pay.message}"
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </ul>
           </div>
           <div className="makepayment w-1/2 bg-slate-900 rounded-2xl text-white my-5 p-5">

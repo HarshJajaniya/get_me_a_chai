@@ -26,3 +26,20 @@ export const initiate = async (amount, to_username, paymentform) => {
   });
   return x;
 };
+
+export const fetchuser = async (username) => {
+  await connectDb();
+  let u = await User.findOne({ username: username }).lean(); // ✅ use .lean()
+  return u ? JSON.parse(JSON.stringify(u)) : null; // ✅ safe for Client Components
+};
+
+export const fetchpayments = async (username) => {
+  await connectDb();
+  let p = await payment
+    .find({ to_user: username, done: true })
+    .sort({ amount: -1 })
+    .limit(10)
+    .lean(); // ✅ plain objects already
+
+  return JSON.parse(JSON.stringify(p)); // ✅ safe for Client Components
+};

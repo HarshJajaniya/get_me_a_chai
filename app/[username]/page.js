@@ -1,12 +1,9 @@
 import React from "react";
 import PaymentPage from "@/components/Paymentpage";
 
-const page = ({ params }) => {
-  return (
-    <>
-      <PaymentPage username={params.username} />
-    </>
-  );
+const Page = async ({ params }) => {
+  const { username } = await params; // ✅ await required
+  return <PaymentPage username={username} />;
 };
 
-export default page;
+export default Page;
