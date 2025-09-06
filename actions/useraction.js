@@ -4,13 +4,14 @@ import Razorpay from "razorpay";
 import payment from "@/models/payment";
 import connectDb from "@/db/connectDb";
 import User from "@/models/User";
-import Email from "next-auth/providers/email";
+
 export const initiate = async (amount, to_username, paymentform) => {
   await connectDb();
-  var instance = new Razorpay({
-    key_id: process.env.NEXT_PUBLIC_KEY_ID,
-    key_secret: process.env.KEY_SECRET,
-  });
+  // fetch the secret of the user who is getting the payment
+  let user = await User.findOne({ username: to_username });
+  const secret = user.razorpaysecret;
+
+  var instance = new Razorpay({ key_id: user.razorpayid, key_secret: secret });
 
   let options = {
     amount: Number.parseInt(amount),
@@ -18,6 +19,8 @@ export const initiate = async (amount, to_username, paymentform) => {
   };
 
   let x = await instance.orders.create(options);
+
+  // create a payment object which shows a pending payment in the database
   await payment.create({
     oid: x.id,
     amount: amount / 100,
@@ -25,46 +28,45 @@ export const initiate = async (amount, to_username, paymentform) => {
     name: paymentform.name,
     message: paymentform.message,
   });
+
   return x;
 };
 
 export const fetchuser = async (username) => {
   await connectDb();
-  let u = await User.findOne({ username: username }).lean(); // ✅ use .lean()
-  return u ? JSON.parse(JSON.stringify(u)) : null; // ✅ safe for Client Components
+  let u = await User.findOne({ username: username });
+  let user = u.toObject({ flattenObjectIds: true });
+  return user;
 };
 
 export const fetchpayments = async (username) => {
   await connectDb();
+  // find all payments sorted by decreasing order of amount and flatten object ids
   let p = await payment
     .find({ to_user: username, done: true })
     .sort({ amount: -1 })
     .limit(10)
-    .lean(); // ✅ plain objects already
-
-  return JSON.parse(JSON.stringify(p)); // ✅ safe for Client Components
+    .lean();
+  return p;
 };
 
-export const updateprofile = async (data, oldusername) => {
+export const updateProfile = async (data, oldusername) => {
   await connectDb();
+  let ndata = Object.fromEntries(data);
 
-  // Clone the form data
-  let ndata = { ...data };
-
-  // If username is changing, check for conflicts
+  // If the username is being updated, check if username is available
   if (oldusername !== ndata.username) {
-    const exists = await User.findOne({ username: ndata.username });
-    if (exists) {
+    let u = await User.findOne({ username: ndata.username });
+    if (u) {
       return { error: "Username already exists" };
     }
+    await User.updateOne({ email: ndata.email }, ndata);
+    // Now update all the usernames in the Payments table
+    await payment.updateMany(
+      { to_user: oldusername },
+      { to_user: ndata.username }
+    );
+  } else {
+    await User.updateOne({ email: ndata.email }, ndata);
   }
-
-  // Update the user by old username
-  const updatedUser = await User.findOneAndUpdate(
-    { username: oldusername },
-    { $set: ndata },
-    { new: true }
-  ).lean();
-
-  return JSON.parse(JSON.stringify(updatedUser));
 };

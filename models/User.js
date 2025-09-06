@@ -1,20 +1,16 @@
 import mongoose from "mongoose";
-
-const { Schema } = mongoose;
+const { Schema, model } = mongoose;
 
 const UserSchema = new Schema({
-  email: { type: String, required: true }, // fixed typo "requied"
+  email: { type: String, required: true },
   name: { type: String },
   username: { type: String, required: true },
   profilepic: { type: String },
   coverpic: { type: String },
   razorpayid: { type: String },
   razorpaysecret: { type: String },
-  createdat: { type: Date, default: Date.now },
-  updatedat: { type: Date, default: Date.now },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 });
 
-// ✅ Prevent recompiling model on hot reload
-const User = mongoose.models.User || mongoose.model("User", UserSchema);
-
-export default User;
+export default mongoose.models.User || model("User", UserSchema);
