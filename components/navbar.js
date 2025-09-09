@@ -19,15 +19,7 @@ const Navbar = () => {
         </span>
       </Link>
 
-      {/* <ul className='flex justify-between gap-4'>
-        <li>Home</li>
-        <li>About</li>
-        <li>Projects</li>
-        <li>Sign Up</li>
-        <li>Login</li>
-      </ul> */}
-
-      <div className="relative flex justify-center items-center  md:block gap-4">
+      <div className="relative flex justify-center items-center md:block gap-4">
         {session && (
           <>
             <button
@@ -38,8 +30,7 @@ const Navbar = () => {
                 }, 100);
               }}
               id="dropdownDefaultButton"
-              data-dropdown-toggle="dropdown"
-              className="text-white mx-2 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-2 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              className="text-white mx-2 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-2 py-2.5 text-center inline-flex items-center"
               type="button"
             >
               Account
@@ -64,24 +55,24 @@ const Navbar = () => {
               id="dropdown"
               className={`z-10 ${
                 showdropdown ? "" : "hidden"
-              } absolute left-[15px] top-12 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700`}
+              } absolute left-[15px] top-12 bg-gray-800 rounded-lg shadow w-44`}
             >
               <ul
-                className="py-2 text-sm text-gray-700 dark:text-gray-200"
+                className="py-2 text-sm text-white"
                 aria-labelledby="dropdownDefaultButton"
               >
                 <li>
                   <Link
                     href="/dashboard"
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                    className="block px-4 py-2 hover:bg-gray-700"
                   >
                     Dashboard
                   </Link>
                 </li>
                 <li>
                   <Link
-                    href={`/${session.user.username}`} // ✅ make sure username exists in session
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                    href={`/${session.user.name}`}
+                    className="block px-4 py-2 hover:bg-gray-700"
                   >
                     Your Page
                   </Link>
@@ -89,7 +80,7 @@ const Navbar = () => {
                 <li>
                   <button
                     onClick={() => signOut()}
-                    className="w-full text-left block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                    className="w-full text-left block px-4 py-2 hover:bg-gray-700"
                   >
                     Sign out
                   </button>
@@ -101,7 +92,7 @@ const Navbar = () => {
 
         {session && (
           <button
-            className="text-white w-fit bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 "
+            className="text-white w-fit bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 "
             onClick={() => {
               signOut();
             }}
@@ -110,11 +101,12 @@ const Navbar = () => {
           </button>
         )}
         {!session && (
-          <Link href={"/login"}>
-            <button className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 ">
-              Login
-            </button>
-          </Link>
+          <button
+            onClick={() => signIn(undefined, { callbackUrl: "/dashboard" })}
+            className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 "
+          >
+            Login
+          </button>
         )}
       </div>
     </nav>

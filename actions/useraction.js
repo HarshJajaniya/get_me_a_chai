@@ -32,11 +32,20 @@ export const initiate = async (amount, to_username, paymentform) => {
   return x;
 };
 
-export const fetchuser = async (username) => {
+export const fetchuser = async (email) => {
   await connectDb();
-  let u = await User.findOne({ username: username });
-  let user = u.toObject({ flattenObjectIds: true });
-  return user;
+  const u = await User.findOne({ email: email.toLowerCase() });
+  if (!u)
+    return {
+      name: "",
+      email: "",
+      username: "",
+      profilepic: "",
+      coverpic: "",
+      razorpayid: "",
+      razorpaysecret: "",
+    };
+  return u.toObject({ flattenObjectIds: true });
 };
 
 export const fetchpayments = async (username) => {
@@ -51,22 +60,44 @@ export const fetchpayments = async (username) => {
 };
 
 export const updateProfile = async (data, oldusername) => {
-  await connectDb();
-  let ndata = Object.fromEntries(data);
+  try {
+    await connectDb();
 
-  // If the username is being updated, check if username is available
-  if (oldusername !== ndata.username) {
-    let u = await User.findOne({ username: ndata.username });
-    if (u) {
-      return { error: "Username already exists" };
+    // no Object.fromEntries, just use the plain object
+    let ndata = { ...data };
+
+    // If the username is being updated, check if it's available
+    if (oldusername !== ndata.username) {
+      let existingUser = await User.findOne({ username: ndata.username });
+      if (existingUser) {
+        return { error: "Username already exists" };
+      }
+
+      // update user
+      const updatedUser = await User.findOneAndUpdate(
+        { email: ndata.email },
+        ndata,
+        { new: true, runValidators: true }
+      );
+
+      // update all usernames in the Payments table
+      await payment.updateMany(
+        { to_user: oldusername },
+        { to_user: ndata.username }
+      );
+
+      return JSON.parse(JSON.stringify(updatedUser));
+    } else {
+      // just update user without username change
+      const updatedUser = await User.findOneAndUpdate(
+        { email: ndata.email },
+        ndata,
+        { new: true, runValidators: true }
+      );
+      return JSON.parse(JSON.stringify(updatedUser));
     }
-    await User.updateOne({ email: ndata.email }, ndata);
-    // Now update all the usernames in the Payments table
-    await payment.updateMany(
-      { to_user: oldusername },
-      { to_user: ndata.username }
-    );
-  } else {
-    await User.updateOne({ email: ndata.email }, ndata);
+  } catch (err) {
+    console.error("❌ updateProfile error:", err);
+    throw new Error("Update failed: " + err.message);
   }
 };

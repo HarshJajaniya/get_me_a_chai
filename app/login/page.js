@@ -7,11 +7,10 @@ import { useRouter } from "next/navigation";
 const Login = () => {
   const { data: session } = useSession();
   const router = useRouter();
-
   // Redirect user after login
   useEffect(() => {
     if (session?.user?.username) {
-      router.push(`/${session.user.username}`);
+      router.push("/dashboard");
     }
   }, [session, router]);
 
