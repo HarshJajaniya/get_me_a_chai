@@ -1,184 +1,199 @@
 "use client";
-import Script from "next/script";
 import React, { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import Script from "next/script";
 import { fetchuser, fetchpayments, initiate } from "@/actions/useraction";
+import { useSearchParams, useRouter } from "next/navigation";
+import { ToastContainer, toast, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const PaymentPage = ({ username }) => {
-  const [paymentform, setPaymentform] = useState({});
-  const [currentUser, setCurrentUser] = useState(null);
+  const [paymentform, setPaymentform] = useState({
+    name: "",
+    message: "",
+    amount: "",
+  });
+  const [currentUser, setCurrentUser] = useState({});
   const [payments, setPayments] = useState([]);
-  const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
-  // Fetch current logged-in user from session email
   useEffect(() => {
-    const fetchData = async () => {
-      if (!session?.user?.email) return;
-      const u = await fetchuser(session.user.email); // Fetch user by email
+    getData();
+  }, []);
+
+  useEffect(() => {
+    if (searchParams.get("paymentdone") === "true") {
+      toast.success("Thanks for your donation!", {
+        position: "top-right",
+        autoClose: 5000,
+        theme: "light",
+        transition: Bounce,
+      });
+      router.push(`/${username}`);
+    }
+  }, [searchParams]);
+
+  const getData = async () => {
+    try {
+      const u = await fetchuser(username);
+      if (!u || !u.username) throw new Error("User not found");
       setCurrentUser(u);
-    };
-    fetchData();
-  }, [session]);
 
-  // Fetch payments for the user
-  useEffect(() => {
-    const fetchPayments = async () => {
-      if (!username) return;
       const dbPayments = await fetchpayments(username);
       setPayments(dbPayments);
-    };
-    fetchPayments();
-  }, [username]);
+    } catch (err) {
+      console.error("Error fetching user/payments:", err);
+      toast.error("Failed to load user data", { theme: "light" });
+    }
+  };
 
   const handleChange = (e) => {
     setPaymentform({ ...paymentform, [e.target.name]: e.target.value });
   };
 
   const pay = async (amount) => {
-    if (!currentUser) return;
+    if (!currentUser.razorpayid || !currentUser.razorpaysecret) {
+      toast.error(
+        "Razorpay credentials not found. Ask the user to update their dashboard.",
+        {
+          theme: "light",
+        }
+      );
+      return;
+    }
 
-    const finalAmount = Number(amount) * 100; // Convert to paise
-    const order = await initiate(finalAmount, username, paymentform);
+    try {
+      const order = await initiate(amount, username, paymentform); // server call
+      const options = {
+        key: currentUser.razorpayid,
+        amount: amount,
+        currency: "INR",
+        name: username,
+        description: paymentform.message || "Support Transaction",
+        image: currentUser.profilepic || "/default-profile.jpg",
+        order_id: order.id,
+        callback_url: `${process.env.NEXT_PUBLIC_URL}/api/razorpay`,
+        prefill: {
+          name: paymentform.name,
+          email: currentUser.email || "",
+        },
+        notes: { address: "Razorpay Corporate Office" },
+        theme: { color: "#3399cc" },
+      };
 
-    const options = {
-      key: currentUser.razorpayid,
-      amount: finalAmount,
-      currency: "INR",
-      name: "Get Me A Chai",
-      description: "Test Transaction",
-      image: currentUser.profilepic || "https://example.com/default_logo.png",
-      order_id: order.id,
-      callback_url: `${process.env.NEXT_PUBLIC_URL}/api/razorpay`,
-      prefill: {
-        name: paymentform.name || "",
-        email: session?.user?.email || "",
-        contact: "9000090000",
-      },
-      notes: {
-        address: "Razorpay Corporate Office",
-      },
-      method: {
-        upi: true,
-        card: true,
-        netbanking: true,
-        wallet: true,
-      },
-      theme: {
-        color: "#3399cc",
-      },
-    };
-
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+      const rzp1 = new Razorpay(options);
+      rzp1.open();
+    } catch (err) {
+      console.error("Payment initiation failed:", err);
+      toast.error("Payment failed. Try again.", { theme: "light" });
+    }
   };
-
-  if (!currentUser) {
-    return (
-      <div className="text-white text-center mt-10">Loading user data...</div>
-    );
-  }
 
   return (
     <>
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        theme="light"
+        transition={Bounce}
+      />
+      <Script src="https://checkout.razorpay.com/v1/checkout.js"></Script>
 
       <div className="cover w-full bg-red-50 relative">
-        {currentUser.coverpic && (
+        <img
+          className="object-cover w-full h-48 md:h-[350px]"
+          src={currentUser?.coverpic || "/default-cover.jpg"}
+          alt="cover"
+        />
+        <div className="absolute -bottom-20 right-[33%] md:right-[46%] border-white overflow-hidden border-2 rounded-full">
           <img
-            className="object-cover w-full h-48 md:h-[350px] shadow-blue-700 shadow-sm"
-            src={currentUser.coverpic}
-            alt="Cover"
+            className="rounded-full w-16 h-16"
+            src={currentUser?.profilepic || "/default-profile.jpg"}
+            alt="profile"
           />
-        )}
-        <div className="absolute -bottom-20 right-[33%] md:right-[46%] border-white overflow-hidden border-2 rounded-full size-36">
-          {currentUser.profilepic && (
-            <img
-              className="rounded-full object-cover size-36"
-              width={128}
-              height={128}
-              src={currentUser.profilepic}
-              alt="Profile"
-            />
-          )}
         </div>
       </div>
 
-      <div className="info flex flex-col justify-center items-center my-24 gap-2">
+      <div className="info flex justify-center items-center my-24 mb-32 flex-col gap-2">
         <div className="font-bold text-lg">@{username}</div>
-        <div className="text-slate-600">Made with ❤️</div>
-        <div className="text-slate-600">Since 2025.</div>
+        <div className="text-slate-400">Let's help {username} get a chai!</div>
+        <div className="text-slate-400">
+          {payments.length} Payments • ₹
+          {payments.reduce((a, b) => a + b.amount, 0)} raised
+        </div>
 
-        <div className="payment flex gap-4 w-[80%]">
-          {/* Supports */}
-          <div className="supports w-1/2 bg-slate-900 rounded-2xl text-white my-5 p-5">
-            <h1 className="font-bold text-2xl my-5">Supports</h1>
-            <ul className="mx-5">
-              {payments.length === 0 ? (
-                <li>No payments yet</li>
-              ) : (
-                payments.map((pay, i) => (
-                  <li key={i} className="my-4 flex gap-2 items-center">
-                    <img width={40} src="avatar.gif" alt="avatar" />
-                    <span>
-                      {pay.name} donated{" "}
-                      <span className="text-green-300 font-bold">
-                        ₹{pay.amount}
-                      </span>{" "}
-                      with message "{pay.message}"
-                    </span>
-                  </li>
-                ))
-              )}
+        <div className="payment flex gap-3 w-[80%] mt-11 flex-col md:flex-row">
+          {/* Supporters List */}
+          <div className="supporters w-full md:w-1/2 bg-slate-900 rounded-lg text-white px-2 md:p-10">
+            <h2 className="text-2xl font-bold my-5">Top 10 Supporters</h2>
+            <ul className="mx-5 text-lg">
+              {payments.length === 0 && <li>No payments yet</li>}
+              {payments.map((p, i) => (
+                <li key={i} className="my-4 flex gap-2 items-center">
+                  <img width={33} src="avatar.gif" alt="user avatar" />
+                  <span>
+                    {p.name} donated{" "}
+                    <span className="font-bold">₹{p.amount}</span> with a
+                    message "{p.message}"
+                  </span>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Make Payment */}
-          <div className="makepayment w-1/2 bg-slate-900 rounded-2xl text-white my-5 p-5">
-            <h1 className="font-bold text-2xl my-5">Make a Payment</h1>
+          {/* Payment Form */}
+          <div className="makePayment w-full md:w-1/2 bg-slate-900 rounded-lg text-white px-2 md:p-10">
+            <h2 className="text-2xl font-bold my-5">Make a Payment</h2>
             <div className="flex gap-2 flex-col">
               <input
                 onChange={handleChange}
-                value={paymentform.name || ""}
+                value={paymentform.name}
                 name="name"
-                className="bg-slate-700 hover:border hover:border-white rounded-md w-full p-4 text-white"
                 type="text"
+                className="w-full p-3 rounded-lg bg-slate-800 text-white"
                 placeholder="Enter Name"
               />
               <input
                 onChange={handleChange}
-                value={paymentform.message || ""}
+                value={paymentform.message}
                 name="message"
-                className="bg-slate-700 hover:border hover:border-white rounded-md w-full p-4 text-white"
                 type="text"
+                className="w-full p-3 rounded-lg bg-slate-800 text-white"
                 placeholder="Enter Message"
               />
               <input
                 onChange={handleChange}
-                value={paymentform.amount || ""}
+                value={paymentform.amount}
                 name="amount"
-                className="bg-slate-700 hover:border hover:border-white rounded-md w-full p-4 text-white"
-                type="number"
+                type="text"
+                className="w-full p-3 rounded-lg bg-slate-800 text-white"
                 placeholder="Enter Amount"
               />
               <button
+                onClick={() => pay(Number.parseInt(paymentform.amount) * 100)}
                 type="button"
-                onClick={() => pay(paymentform.amount)}
-                className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2"
+                className="text-white bg-gradient-to-br from-purple-900 to-blue-900 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mt-3 disabled:bg-slate-600"
+                disabled={
+                  paymentform.name?.length < 3 ||
+                  paymentform.message?.length < 4 ||
+                  paymentform.amount?.length < 1
+                }
               >
                 Pay
               </button>
             </div>
 
-            <div className="flex gap-2 mt-4">
-              <div className="bg-slate-400 p-4 rounded" onClick={() => pay(20)}>
-                Pay ₹20
-              </div>
-              <div className="bg-slate-400 p-4 rounded" onClick={() => pay(30)}>
-                Pay ₹30
-              </div>
-              <div className="bg-slate-400 p-4 rounded" onClick={() => pay(40)}>
-                Pay ₹40
-              </div>
+            {/* Quick Amount Buttons */}
+            <div className="flex flex-col md:flex-row gap-2 mt-5">
+              {[10, 20, 30].map((amt) => (
+                <button
+                  key={amt}
+                  className="bg-slate-800 p-3 rounded-lg text-white"
+                  onClick={() => pay(amt * 100)}
+                >
+                  Pay ₹{amt}
+                </button>
+              ))}
             </div>
           </div>
         </div>
