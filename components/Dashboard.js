@@ -12,16 +12,25 @@ const Dashboard = () => {
   const [form, setForm] = useState({});
 
   useEffect(() => {
-    if (!session) {
-      router.push("/login");
-    } else {
+    if (session) {
+      setForm({
+        name: session.user.name || "",
+        email: session.user.email || "",
+        username: session.user.username || "",
+        profilepic: session.user.profilepic || "",
+        coverpic: session.user.coverpic || "",
+        razorpayid: "",
+        razorpaysecret: "",
+      });
       getData();
+    } else if (!session) {
+      router.push("/login");
     }
   }, [session]);
 
   const getData = async () => {
     try {
-      const u = await fetchuser(session.user.name);
+      const u = await fetchuser(session.user.username);
       setForm(u);
     } catch (err) {
       console.error("Error fetching user:", err);

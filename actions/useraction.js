@@ -5,68 +5,90 @@ import payment from "@/models/payment";
 import connectDb from "@/db/connectDb";
 import User from "@/models/User";
 
+// Initiate a payment
 export const initiate = async (amount, to_username, paymentform) => {
   await connectDb();
-  // fetch the secret of the user who is getting the payment
-  let user = await User.findOne({ username: to_username });
+
+  const user = await User.findOne({ username: to_username });
+  if (!user) throw new Error("User not found");
+
   const secret = user.razorpaysecret;
 
-  var instance = new Razorpay({ key_id: user.razorpayid, key_secret: secret });
+  const instance = new Razorpay({
+    key_id: user.razorpayid,
+    key_secret: secret,
+  });
 
-  let options = {
-    amount: Number.parseInt(amount),
+  const options = {
+    amount: Number(amount),
     currency: "INR",
   };
 
-  let x = await instance.orders.create(options);
+  const order = await instance.orders.create(options);
 
-  // create a payment object which shows a pending payment in the database
+  // Store payments by email, not username
   await payment.create({
-    oid: x.id,
+    oid: order.id,
     amount: amount / 100,
-    to_user: to_username,
+    to_user: user.email, // <-- use email here
     name: paymentform.name,
     message: paymentform.message,
   });
 
-  return x;
+  return order;
 };
 
+// Fetch a single user
 export const fetchuser = async (username) => {
   await connectDb();
-  let u = await User.findOne({ username: username });
-  let user = u.toObject({ flattenObjectIds: true });
-  return user;
+
+  const u = await User.findOne({ username: decodeURIComponent(username) });
+  if (!u) throw new Error("User not found");
+
+  return u.toObject({ flattenObjectIds: true });
 };
 
+// Fetch recent payments for a user
 export const fetchpayments = async (username) => {
   await connectDb();
-  // find all payments sorted by decreasing order of amount and flatten object ids
-  let p = await payment
-    .find({ to_user: username, done: true })
+
+  // Find user by username to get their email
+  const user = await User.findOne({ username: decodeURIComponent(username) });
+  if (!user) throw new Error("User not found");
+
+  const payments = await payment
+    .find({ to_user: user.email, done: true }) // <-- use email here
     .sort({ amount: -1 })
     .limit(10)
     .lean();
-  return p;
+
+  return payments.map((p) => ({
+    ...p,
+    _id: p._id.toString(),
+  }));
 };
 
+// Update user profile
 export const updateProfile = async (data, oldusername) => {
   await connectDb();
-  let ndata = Object.fromEntries(data);
+  const ndata = { ...data };
 
-  // If the username is being updated, check if username is available
   if (oldusername !== ndata.username) {
-    let u = await User.findOne({ username: ndata.username });
-    if (u) {
-      return { error: "Username already exists" };
-    }
+    const u = await User.findOne({ username: ndata.username });
+    if (u) return { error: "Username already exists" };
+
     await User.updateOne({ email: ndata.email }, ndata);
-    // Now update all the usernames in the payments table
-    await payment.updateMany(
-      { to_user: oldusername },
-      { to_user: ndata.username }
-    );
+    // No need to update payments
   } else {
     await User.updateOne({ email: ndata.email }, ndata);
+    // No need to update payments
   }
+
+  return { success: true };
 };
+
+// Run this once in a script or backend
+const users = await User.find({});
+for (const user of users) {
+  await payment.updateMany({ to_user: user.username }, { to_user: user.email });
+}

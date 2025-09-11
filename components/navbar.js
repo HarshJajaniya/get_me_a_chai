@@ -71,7 +71,7 @@ const Navbar = () => {
                 </li>
                 <li>
                   <Link
-                    href={`/${session.user.name}`}
+                    href={`/${session.user.username}`}
                     className="block px-4 py-2 hover:bg-gray-700"
                   >
                     Your Page

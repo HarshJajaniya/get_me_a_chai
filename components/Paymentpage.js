@@ -105,9 +105,9 @@ const PaymentPage = ({ username }) => {
           src={currentUser?.coverpic || "/default-cover.jpg"}
           alt="cover"
         />
-        <div className="absolute -bottom-20 right-[33%] md:right-[46%] border-white overflow-hidden border-2 rounded-full">
+        <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 border-white overflow-hidden border-2 rounded-full">
           <img
-            className="rounded-full w-16 h-16"
+            className="rounded-full w-45 h-45"
             src={currentUser?.profilepic || "/default-profile.jpg"}
             alt="profile"
           />
@@ -126,14 +126,14 @@ const PaymentPage = ({ username }) => {
           {/* Supporters List */}
           <div className="supporters w-full md:w-1/2 bg-slate-900 rounded-lg text-white px-2 md:p-10">
             <h2 className="text-2xl font-bold my-5">Top 10 Supporters</h2>
-            <ul className="mx-5 text-lg">
+            <ul className="mx-5 text-lg text-[14px]">
               {payments.length === 0 && <li>No payments yet</li>}
               {payments.map((p, i) => (
                 <li key={i} className="my-4 flex gap-2 items-center">
                   <img width={33} src="avatar.gif" alt="user avatar" />
                   <span>
                     {p.name} donated{" "}
-                    <span className="font-bold">₹{p.amount}</span> with a
+                    <span className="font-bold ">₹{p.amount}</span> with a
                     message "{p.message}"
                   </span>
                 </li>
