@@ -5,6 +5,7 @@ import { fetchuser, fetchpayments, initiate } from "@/actions/useraction";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ToastContainer, toast, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Image from "next/image";
 
 const PaymentPage = ({ username }) => {
   const [paymentform, setPaymentform] = useState({
@@ -19,6 +20,7 @@ const PaymentPage = ({ username }) => {
 
   useEffect(() => {
     getData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -31,6 +33,7 @@ const PaymentPage = ({ username }) => {
       });
       router.push(`/${username}`);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const getData = async () => {
@@ -81,7 +84,9 @@ const PaymentPage = ({ username }) => {
         theme: { color: "#3399cc" },
       };
 
-      const rzp1 = new Razorpay(options);
+      // Razorpay must be available globally
+      // eslint-disable-next-line no-undef
+      const rzp1 = new window.Razorpay(options);
       rzp1.open();
     } catch (err) {
       console.error("Payment initiation failed:", err);
@@ -97,28 +102,40 @@ const PaymentPage = ({ username }) => {
         theme="light"
         transition={Bounce}
       />
-      <Script src="https://checkout.razorpay.com/v1/checkout.js"></Script>
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="afterInteractive"
+      />
 
       <div className="cover w-full bg-red-50 relative">
-        <img
+        <Image
           className="object-cover w-full h-48 md:h-[350px]"
           src={currentUser?.coverpic || "/default-cover.jpg"}
           alt="cover"
+          fill={false}
+          width={1200}
+          height={350}
+          priority
         />
         <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 border-white overflow-hidden border-2 rounded-full">
-          <img
-            className="rounded-full w-45 h-45"
+          <Image
+            className="rounded-full"
             src={currentUser?.profilepic || "/default-profile.jpg"}
             alt="profile"
+            width={180}
+            height={180}
+            priority
           />
         </div>
       </div>
 
       <div className="info flex justify-center items-center my-24 mb-32 flex-col gap-2">
         <div className="font-bold text-lg">@{username}</div>
-        <div className="text-slate-400">Let's help {username} get a chai!</div>
         <div className="text-slate-400">
-          {payments.length} Payments • ₹
+          Let&apos;s help {username} get a chai!
+        </div>
+        <div className="text-slate-400">
+          {payments.length} Payments &bull; ₹
           {payments.reduce((a, b) => a + b.amount, 0)} raised
         </div>
 
@@ -130,11 +147,16 @@ const PaymentPage = ({ username }) => {
               {payments.length === 0 && <li>No payments yet</li>}
               {payments.map((p, i) => (
                 <li key={i} className="my-4 flex gap-2 items-center">
-                  <img width={33} src="avatar.gif" alt="user avatar" />
+                  <Image
+                    width={33}
+                    height={33}
+                    src="/avatar.gif"
+                    alt="user avatar"
+                  />
                   <span>
                     {p.name} donated{" "}
                     <span className="font-bold ">₹{p.amount}</span> with a
-                    message "{p.message}"
+                    message &quot;{p.message}&quot;
                   </span>
                 </li>
               ))}

@@ -35,9 +35,11 @@ export default function Home() {
       <div className="container mx-auto flex flex-col md:flex-row justify-around items-center py-10 gap-8 md:gap-0">
         <div className="flex flex-col justify-center items-center gap-1 w-full md:w-1/3">
           <div className="rounded-lg overflow-hidden w-[100px] h-[100px] mx-4">
-            <img
+            <Image
               src="/man.gif"
               alt="Animated man"
+              width={100}
+              height={100}
               className="w-full h-full object-cover"
             />
           </div>
@@ -50,9 +52,11 @@ export default function Home() {
         </div>
         <div className="flex flex-col justify-center items-center gap-1 w-full md:w-1/3">
           <div className="rounded-lg overflow-hidden w-[100px] h-[100px] mx-4">
-            <img
+            <Image
               src="/fans.gif"
-              alt="Animated man"
+              alt="Animated fans"
+              width={100}
+              height={100}
               className="w-full h-full object-cover"
             />
           </div>
@@ -65,9 +69,11 @@ export default function Home() {
         </div>
         <div className="flex flex-col justify-center items-center gap-1 w-full md:w-1/3">
           <div className="rounded-lg overflow-hidden w-[100px] h-[100px] mx-4">
-            <img
+            <Image
               src="/man.gif"
               alt="Animated man"
+              width={100}
+              height={100}
               className="w-full h-full object-cover"
             />
           </div>
@@ -84,9 +90,11 @@ export default function Home() {
       {/* learn more section */}
       <div className="container mx-auto flex flex-col items-center py-10">
         <div className="flex flex-col justify-center items-center gap-4 w-full">
-          <img
+          <Image
             src="/thm.png"
             alt="Notion Portfolio"
+            width={400}
+            height={400}
             className="w-full max-w-md h-[220px] md:h-[400px] object-cover rounded-[8px] shadow-gradient"
           />
           <a

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 const Login = () => {
   const { data: session } = useSession();
   const router = useRouter();
-  // Redirect user after login
+
   useEffect(() => {
     if (session?.user?.username) {
       router.push("/dashboard");
@@ -16,9 +16,10 @@ const Login = () => {
 
   return (
     <div className="text-white container mx-auto py-14">
-      <h1 className="font-bold text-center text-3xl">Login to support me</h1>
-
-      <div className="container mx-auto items-center flex flex-col gap-6 min-h-screen p-10">
+      <h1 className="font-bold text-center text-3xl mb-8">
+        Login to support me
+      </h1>
+      <div className="flex flex-col items-center gap-6 min-h-[40vh] p-6">
         {/* Github Login */}
         <button
           onClick={() => signIn("github")}
@@ -44,7 +45,7 @@ const Login = () => {
               fill="#FFFFFF"
             ></path>
           </svg>
-          <span>Continue with Github</span>
+          <span>Continue with GitHub</span>
         </button>
         {/* Google Login */}
         <button
