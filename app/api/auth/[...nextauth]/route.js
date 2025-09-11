@@ -23,20 +23,19 @@ export const authoptions = NextAuth({
 
   callbacks: {
     async signIn({ user, account }) {
-      if (account.provider === "github") {
+      if (account.provider === "github" || account.provider === "google") {
         await connectDb();
 
         const currentUser = await User.findOne({ email: user.email });
         if (!currentUser) {
-          // Create new user with defaults
           await User.create({
             email: user.email,
             username: user.email
               .split("@")[0]
               .replace(/\s+/g, "-")
               .toLowerCase(),
-            profilepic: user.image || "", // GitHub provides image
-            coverpic: "", // keep empty, user can set later
+            profilepic: user.image || "", // Provider provides image
+            coverpic: "",
           });
         }
       }
