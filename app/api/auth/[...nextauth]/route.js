@@ -4,7 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import connectDb from "@/db/connectDb";
 import User from "@/models/User";
 
-export const authoptions = NextAuth({
+export const handler = NextAuth({
   providers: [
     GitHubProvider({
       clientId: process.env.GITHUB_ID,
@@ -59,4 +59,4 @@ export const authoptions = NextAuth({
   },
 });
 
-export { authoptions as GET, authoptions as POST };
+export { handler as GET, handler as POST };

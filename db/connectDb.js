@@ -1,14 +1,19 @@
 import mongoose from "mongoose";
 
 const connectDb = async () => {
+  if (mongoose.connection.readyState >= 1) {
+    return mongoose.connection.asPromise();
+  }
+
   try {
-    const conn = await mongoose.connect("mongodb://localhost:27017/chai", {
+    const conn = await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
+      useUnifiedTopology: true,
     });
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     return conn;
   } catch (error) {
-    console.error(error.message);
+    console.error("❌ MongoDB connection error:", error.message);
     process.exit(1);
   }
 };
