@@ -26,14 +26,13 @@ const Dashboard = () => {
     } else if (!session) {
       router.push("/login");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const getData = async () => {
     try {
-      const res = await fetch(`/app/${session.user.username}`);
-      if (!res.ok) throw new Error("Failed to fetch user");
-      const u = await res.json();
-      setForm(u);
+      const u = await fetchuser(session.user.username);
+      setForm((prev) => ({ ...prev, ...u }));
     } catch (err) {
       console.error("Error fetching user:", err);
       toast.error("Failed to load user data", { theme: "dark" });
