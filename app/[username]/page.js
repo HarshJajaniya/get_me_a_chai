@@ -17,8 +17,7 @@ const Page = async ({ params }) => {
 export default Page;
 
 export async function generateMetadata({ params }) {
-  return;
-  {
-    title: `Support${params.username}-Get me a chai`;
-  }
+  return {
+    title: `Support ${params.username} - Get me a chai`,
+  };
 }
