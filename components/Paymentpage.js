@@ -5,7 +5,7 @@ import { fetchuser, fetchpayments, initiate } from "@/actions/useraction";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ToastContainer, toast, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Image from "next/image";
+import SmartImage from "./smartImage";
 
 const PaymentPage = ({ username }) => {
   const [paymentform, setPaymentform] = useState({
@@ -58,9 +58,7 @@ const PaymentPage = ({ username }) => {
     if (!currentUser.razorpayid || !currentUser.razorpaysecret) {
       toast.error(
         "Razorpay credentials not found. Ask the user to update their dashboard.",
-        {
-          theme: "light",
-        }
+        { theme: "light" }
       );
       return;
     }
@@ -73,9 +71,9 @@ const PaymentPage = ({ username }) => {
         currency: "INR",
         name: username,
         description: paymentform.message || "Support Transaction",
-        image: currentUser.profilepic || "/default-profile.jpg",
+        image: currentUser.profilepic || "/img.png", // fallback profile image
         order_id: order.id,
-        callback_url: `${process.env.NEXT_PUBLIC_URL}/api/razorpay`,
+        return_url: `${window.location.origin}/${username}?paymentdone=true`, // redirect after payment
         prefill: {
           name: paymentform.name,
           email: currentUser.email || "",
@@ -84,8 +82,6 @@ const PaymentPage = ({ username }) => {
         theme: { color: "#3399cc" },
       };
 
-      // Razorpay must be available globally
-      // eslint-disable-next-line no-undef
       const rzp1 = new window.Razorpay(options);
       rzp1.open();
     } catch (err) {
@@ -107,20 +103,22 @@ const PaymentPage = ({ username }) => {
         strategy="afterInteractive"
       />
 
+      {/* Cover & Profile */}
       <div className="cover w-full bg-red-50 relative">
-        <Image
+        <SmartImage
           className="object-cover w-full h-48 md:h-[350px]"
-          src={currentUser?.coverpic || "/default-cover.jpg"}
+          src={currentUser?.coverpic}
+          fallback="/cover.png"
           alt="cover"
-          fill={false}
           width={1200}
           height={350}
           priority
         />
         <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 border-white overflow-hidden border-2 rounded-full">
-          <Image
+          <SmartImage
             className="rounded-full"
-            src={currentUser?.profilepic || "/default-profile.jpg"}
+            src={currentUser?.profilepic}
+            fallback="/img.png"
             alt="profile"
             width={180}
             height={180}
@@ -129,6 +127,7 @@ const PaymentPage = ({ username }) => {
         </div>
       </div>
 
+      {/* User Info */}
       <div className="info flex justify-center items-center my-24 mb-32 flex-col gap-2">
         <div className="font-bold text-lg">@{username}</div>
         <div className="text-slate-400">
@@ -147,10 +146,11 @@ const PaymentPage = ({ username }) => {
               {payments.length === 0 && <li>No payments yet</li>}
               {payments.map((p, i) => (
                 <li key={i} className="my-4 flex gap-2 items-center">
-                  <Image
+                  <SmartImage
+                    src="/avatar.gif"
+                    fallback="/img.png"
                     width={33}
                     height={33}
-                    src="/avatar.gif"
                     alt="user avatar"
                   />
                   <span>

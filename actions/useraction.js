@@ -69,26 +69,34 @@ export const fetchpayments = async (username) => {
 };
 
 // Update user profile
-export const updateProfile = async (data, oldusername) => {
-  await connectDb();
-  const ndata = { ...data };
+export const updateProfile = async (form, username) => {
+  // Only allow safe fields
+  const {
+    name,
+    email,
+    username: newUsername,
+    profilepic,
+    coverpic,
+    razorpayid,
+    razorpaysecret,
+  } = form;
+  const safeForm = {
+    name,
+    email,
+    username: newUsername,
+    profilepic,
+    coverpic,
+    razorpayid,
+    razorpaysecret,
+  };
 
-  if (oldusername !== ndata.username) {
-    const u = await User.findOne({ username: ndata.username });
-    if (u) return { error: "Username already exists" };
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:3000";
 
-    await User.updateOne({ email: ndata.email }, ndata);
-    // No need to update payments
-  } else {
-    await User.updateOne({ email: ndata.email }, ndata);
-    // No need to update payments
-  }
+  const res = await fetch(`${baseUrl}/api/user/${username}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(safeForm),
+  });
 
-  return { success: true };
+  return res.json();
 };
-
-// Run this once in a script or backend
-const users = await User.find({});
-for (const user of users) {
-  await payment.updateMany({ to_user: user.username }, { to_user: user.email });
-}

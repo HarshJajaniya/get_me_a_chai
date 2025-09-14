@@ -9,19 +9,19 @@ import "react-toastify/dist/ReactToastify.css";
 const Dashboard = () => {
   const { data: session } = useSession();
   const router = useRouter();
-  const [form, setForm] = useState({});
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    username: "",
+    profilepic: "",
+    coverpic: "",
+    razorpayid: "",
+    razorpaysecret: "",
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (session) {
-      setForm({
-        name: session.user.name || "",
-        email: session.user.email || "",
-        username: session.user.username || "",
-        profilepic: session.user.profilepic || "",
-        coverpic: session.user.coverpic || "",
-        razorpayid: "",
-        razorpaysecret: "",
-      });
+    if (session?.user?.username) {
       getData();
     } else if (!session) {
       router.push("/login");
@@ -29,13 +29,26 @@ const Dashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
+  // Fetch user data
   const getData = async () => {
     try {
-      const u = await fetchuser(session.user.username);
-      setForm((prev) => ({ ...prev, ...u }));
+      setLoading(true);
+      const data = await fetchuser(session.user.username);
+      setForm((prev) => ({
+        ...prev,
+        name: data.name || "",
+        email: data.email || "",
+        username: data.username || "",
+        profilepic: data.profilepic || "",
+        coverpic: data.coverpic || "",
+        razorpayid: data.razorpayid || "",
+        razorpaysecret: data.razorpaysecret || "",
+      }));
     } catch (err) {
       console.error("Error fetching user:", err);
-      toast.error("Failed to load user data", { theme: "dark" });
+      toast.error("❌ Failed to fetch user data", { theme: "dark" });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -46,7 +59,22 @@ const Dashboard = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await updateProfile(form, session.user.name);
+      // Only allowed fields
+      const allowedFields = [
+        "name",
+        "email",
+        "username",
+        "profilepic",
+        "coverpic",
+        "razorpayid",
+        "razorpaysecret",
+      ];
+      const safeForm = {};
+      allowedFields.forEach((field) => {
+        if (form[field] !== undefined) safeForm[field] = form[field];
+      });
+
+      const res = await updateProfile(safeForm, session.user.username);
       if (res?.error) {
         toast.error(res.error, { theme: "dark" });
       } else {
@@ -58,12 +86,19 @@ const Dashboard = () => {
         });
       }
     } catch (err) {
+      console.error("Update Failed:", err);
       toast.error("❌ Update Failed", { theme: "dark" });
     }
   };
 
   const inputClass =
     "block w-full p-2 text-white border border-gray-600 rounded-lg text-xs bg-gray-800 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500";
+
+  if (loading) {
+    return (
+      <div className="text-center text-white mt-20">Loading dashboard...</div>
+    );
+  }
 
   return (
     <>

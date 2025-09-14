@@ -10,7 +10,7 @@ export const POST = async (req) => {
     let body = await req.formData();
     body = Object.fromEntries(body);
 
-    let p = await payment.findOne({ oid: body.razorpay_order_id });
+    const p = await payment.findOne({ oid: body.razorpay_order_id });
 
     if (!p) {
       return NextResponse.json({
@@ -35,9 +35,12 @@ export const POST = async (req) => {
         { new: true }
       );
 
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_URL}/${updatepayment.to_user}?paymentdone=true`
-      );
+      // ✅ Respond with JSON instead of redirect
+      return NextResponse.json({
+        success: true,
+        message: "Payment verified successfully",
+        username: updatepayment.to_user,
+      });
     } else {
       return NextResponse.json({
         success: false,
