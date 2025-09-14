@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import Script from "next/script";
 import { fetchuser, fetchpayments, initiate } from "@/actions/useraction";
@@ -13,29 +14,14 @@ const PaymentPage = ({ username }) => {
     message: "",
     amount: "",
   });
-  const [currentUser, setCurrentUser] = useState({});
+  const [currentUser, setCurrentUser] = useState(null);
   const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  useEffect(() => {
-    getData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (searchParams.get("paymentdone") === "true") {
-      toast.success("Thanks for your donation!", {
-        position: "top-right",
-        autoClose: 5000,
-        theme: "light",
-        transition: Bounce,
-      });
-      router.push(`/${username}`);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
-
+  // Fetch user & payments
   const getData = async () => {
     try {
       const u = await fetchuser(username);
@@ -47,15 +33,36 @@ const PaymentPage = ({ username }) => {
     } catch (err) {
       console.error("Error fetching user/payments:", err);
       toast.error("Failed to load user data", { theme: "light" });
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  // Show toast after payment done
+  useEffect(() => {
+    if (searchParams.get("paymentdone") === "true") {
+      toast.success("Thanks for your donation!", {
+        position: "top-right",
+        autoClose: 5000,
+        theme: "light",
+        transition: Bounce,
+      });
+      router.replace(`/${username}`);
+      // Refresh data after redirect
+      getData();
+    }
+  }, [searchParams]);
 
   const handleChange = (e) => {
     setPaymentform({ ...paymentform, [e.target.name]: e.target.value });
   };
 
   const pay = async (amount) => {
-    if (!currentUser.razorpayid || !currentUser.razorpaysecret) {
+    if (!currentUser?.razorpayid || !currentUser?.razorpaysecret) {
       toast.error(
         "Razorpay credentials not found. Ask the user to update their dashboard.",
         { theme: "light" }
@@ -64,16 +71,21 @@ const PaymentPage = ({ username }) => {
     }
 
     try {
-      const order = await initiate(amount, username, paymentform); // server call
+      const order = await initiate(amount, username, paymentform);
+
+      if (typeof window === "undefined") return;
+
+      const returnUrl = `${window.location.origin}/${username}?paymentdone=true`;
+
       const options = {
         key: currentUser.razorpayid,
-        amount: amount,
+        amount,
         currency: "INR",
         name: username,
         description: paymentform.message || "Support Transaction",
-        image: currentUser.profilepic || "/img.png", // fallback profile image
+        image: currentUser.profilepic || "/img.png",
         order_id: order.id,
-        return_url: `${window.location.origin}/${username}?paymentdone=true`, // redirect after payment
+        return_url: returnUrl,
         prefill: {
           name: paymentform.name,
           email: currentUser.email || "",
@@ -90,6 +102,12 @@ const PaymentPage = ({ username }) => {
     }
   };
 
+  if (loading) return <div className="text-center py-10">Loading...</div>;
+  if (!currentUser)
+    return <div className="text-center py-10">User not found</div>;
+
+  const totalAmount = payments.reduce((a, b) => a + b.amount, 0);
+
   return (
     <>
       <ToastContainer
@@ -98,6 +116,7 @@ const PaymentPage = ({ username }) => {
         theme="light"
         transition={Bounce}
       />
+
       <Script
         src="https://checkout.razorpay.com/v1/checkout.js"
         strategy="afterInteractive"
@@ -130,12 +149,9 @@ const PaymentPage = ({ username }) => {
       {/* User Info */}
       <div className="info flex justify-center items-center my-24 mb-32 flex-col gap-2">
         <div className="font-bold text-lg">@{username}</div>
+        <div className="text-slate-400">Let's help {username} get a chai!</div>
         <div className="text-slate-400">
-          Let&apos;s help {username} get a chai!
-        </div>
-        <div className="text-slate-400">
-          {payments.length} Payments &bull; ₹
-          {payments.reduce((a, b) => a + b.amount, 0)} raised
+          {payments.length} Payments &bull; ₹{totalAmount} raised
         </div>
 
         <div className="payment flex gap-3 w-[80%] mt-11 flex-col md:flex-row">
@@ -155,8 +171,8 @@ const PaymentPage = ({ username }) => {
                   />
                   <span>
                     {p.name} donated{" "}
-                    <span className="font-bold ">₹{p.amount}</span> with a
-                    message &quot;{p.message}&quot;
+                    <span className="font-bold">₹{p.amount}</span> with a
+                    message "{p.message}"
                   </span>
                 </li>
               ))}
@@ -187,25 +203,27 @@ const PaymentPage = ({ username }) => {
                 onChange={handleChange}
                 value={paymentform.amount}
                 name="amount"
-                type="text"
+                type="number"
                 className="w-full p-3 rounded-lg bg-slate-800 text-white"
                 placeholder="Enter Amount"
               />
               <button
-                onClick={() => pay(Number.parseInt(paymentform.amount) * 100)}
+                onClick={() => pay(Number(paymentform.amount) * 100)}
                 type="button"
                 className="text-white bg-gradient-to-br from-purple-900 to-blue-900 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mt-3 disabled:bg-slate-600"
                 disabled={
-                  paymentform.name?.length < 3 ||
-                  paymentform.message?.length < 4 ||
-                  paymentform.amount?.length < 1
+                  !paymentform.name ||
+                  paymentform.name.length < 3 ||
+                  !paymentform.message ||
+                  paymentform.message.length < 4 ||
+                  !paymentform.amount ||
+                  paymentform.amount <= 0
                 }
               >
                 Pay
               </button>
             </div>
 
-            {/* Quick Amount Buttons */}
             <div className="flex flex-col md:flex-row gap-2 mt-5">
               {[10, 20, 30].map((amt) => (
                 <button
