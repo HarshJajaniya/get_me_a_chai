@@ -30,7 +30,9 @@ const Dashboard = () => {
 
   const getData = async () => {
     try {
-      const u = await fetchuser(session.user.username);
+      const res = await fetch(`/api/user/${session.user.username}`);
+      if (!res.ok) throw new Error("Failed to fetch user");
+      const u = await res.json();
       setForm(u);
     } catch (err) {
       console.error("Error fetching user:", err);
