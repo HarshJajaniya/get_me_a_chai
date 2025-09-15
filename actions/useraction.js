@@ -90,7 +90,7 @@ export const updateProfile = async (form, username) => {
     razorpaysecret,
   };
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
 
   const res = await fetch(`${baseUrl}/api/user/${username}`, {
     method: "PUT",
