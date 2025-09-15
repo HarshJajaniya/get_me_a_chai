@@ -1,7 +1,7 @@
 "use server";
 
 import Razorpay from "razorpay";
-import payment from "@/models/payment";
+import Payment from "@/models/payment";
 import connectDb from "@/db/connectDb";
 import User from "@/models/User";
 
@@ -12,27 +12,25 @@ export const initiate = async (amount, to_username, paymentform) => {
   const user = await User.findOne({ username: to_username });
   if (!user) throw new Error("User not found");
 
-  const secret = user.razorpaysecret;
-
   const instance = new Razorpay({
     key_id: user.razorpayid,
-    key_secret: secret,
+    key_secret: user.razorpaysecret,
   });
 
   const options = {
-    amount: Number(amount),
+    amount: Number(amount), // in paise
     currency: "INR",
   };
 
   const order = await instance.orders.create(options);
 
-  // Store payments by email, not username
-  await payment.create({
+  await Payment.create({
     oid: order.id,
-    amount: amount / 100,
-    to_user: user.email, // <-- use email here
+    amount: amount / 100, // convert paise → rupees
+    to_user: user.email, // ✅ store EMAIL instead of username
     name: paymentform.name,
     message: paymentform.message,
+    done: false,
   });
 
   return order;
@@ -48,16 +46,18 @@ export const fetchuser = async (username) => {
   return u.toObject({ flattenObjectIds: true });
 };
 
-// Fetch recent payments for a user
+// Fetch recent verified payments for a user (by email)
 export const fetchpayments = async (username) => {
   await connectDb();
 
-  // Find user by username to get their email
+  // Find the user first (to get email)
   const user = await User.findOne({ username: decodeURIComponent(username) });
   if (!user) throw new Error("User not found");
 
-  const payments = await payment
-    .find({ to_user: user.email, done: true }) // <-- use email here
+  const payments = await Payment.find({
+    to_user: user.email, // ✅ match EMAIL
+    // only verified
+  })
     .sort({ amount: -1 })
     .limit(10)
     .lean();
@@ -70,7 +70,6 @@ export const fetchpayments = async (username) => {
 
 // Update user profile
 export const updateProfile = async (form, username) => {
-  // Only allow safe fields
   const {
     name,
     email,
@@ -80,6 +79,7 @@ export const updateProfile = async (form, username) => {
     razorpayid,
     razorpaysecret,
   } = form;
+
   const safeForm = {
     name,
     email,

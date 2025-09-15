@@ -2,18 +2,18 @@
 const nextConfig = {
   env: {
     NEXTAUTH_URL: process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}` // On Vercel → use deployed domain
-      : "http://localhost:3000", // Locally → use localhost
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000",
   },
   images: {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "avatars.githubusercontent.com", // GitHub profile pics
+        hostname: "**", // allow all hostnames
       },
       {
-        protocol: "https",
-        hostname: "lh3.googleusercontent.com", // Google profile pics
+        protocol: "http",
+        hostname: "**", // also allow http (optional)
       },
     ],
   },

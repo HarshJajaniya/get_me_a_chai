@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Script from "next/script";
 import { fetchuser, fetchpayments, initiate } from "@/actions/useraction";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -21,8 +21,8 @@ const PaymentPage = ({ username }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Fetch user & payments
-  const getData = async () => {
+  // ✅ Wrap getData in useCallback so we can add it as a dependency
+  const getData = useCallback(async () => {
     try {
       const u = await fetchuser(username);
       if (!u || !u.username) throw new Error("User not found");
@@ -36,11 +36,11 @@ const PaymentPage = ({ username }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [username]);
 
   useEffect(() => {
     getData();
-  }, []);
+  }, [getData]);
 
   // Show toast after payment done
   useEffect(() => {
@@ -52,10 +52,9 @@ const PaymentPage = ({ username }) => {
         transition: Bounce,
       });
       router.replace(`/${username}`);
-      // Refresh data after redirect
       getData();
     }
-  }, [searchParams]);
+  }, [searchParams, router, username, getData]);
 
   const handleChange = (e) => {
     setPaymentform({ ...paymentform, [e.target.name]: e.target.value });
@@ -149,7 +148,10 @@ const PaymentPage = ({ username }) => {
       {/* User Info */}
       <div className="info flex justify-center items-center my-24 mb-32 flex-col gap-2">
         <div className="font-bold text-lg">@{username}</div>
-        <div className="text-slate-400">Let's help {username} get a chai!</div>
+        {/* ✅ Escape apostrophe */}
+        <div className="text-slate-400">
+          Let&apos;s help {username} get a chai!
+        </div>
         <div className="text-slate-400">
           {payments.length} Payments &bull; ₹{totalAmount} raised
         </div>
@@ -172,7 +174,7 @@ const PaymentPage = ({ username }) => {
                   <span>
                     {p.name} donated{" "}
                     <span className="font-bold">₹{p.amount}</span> with a
-                    message "{p.message}"
+                    message &quot;{p.message}&quot;
                   </span>
                 </li>
               ))}
